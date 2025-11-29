@@ -1,0 +1,54 @@
+name: Test GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v3
+    
+    - name: Verificar que index.html existe
+      run: |
+        if [ ! -f "index.html" ]; then
+          echo "❌ Error: index.html no encontrado"
+          exit 1
+        fi
+        echo "✅ index.html encontrado"
+    
+    - name: Verificar estructura de carpetas
+      run: |
+        if [ ! -d "assets" ]; then
+          echo "⚠️ Advertencia: carpeta assets no encontrada"
+        else
+          echo "✅ Carpeta assets encontrada"
+        fi
+    
+    - name: Validar HTML
+      uses: Cyb3r-Jak3/html5validator-action@v7.2.0
+      with:
+        root: ./
+    
+    - name: Mensaje de éxito
+      run: echo "🎉 Todas las pruebas pasaron correctamente"
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v3
+    
+    - name: Desplegar a GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./
